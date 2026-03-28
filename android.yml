@@ -11,48 +11,47 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Create Project Structure
+    - name: Create Clean Android Project
       run: |
-        APP_DIR="MohamedAbdelazimApp"
-        mkdir -p $APP_DIR/app/src/main/java/com/abdelazim/islamicapp
-        mkdir -p $APP_DIR/app/src/main/res/layout
-        mkdir -p $APP_DIR/app/src/main/res/drawable
-        mkdir -p $APP_DIR/app/src/main/res/values
+        # إنشاء هيكل مشروع أندرويد حقيقي في ثواني
+        mkdir -p app/src/main/java/com/abdelazim/islamicapp
+        mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/drawable
+        mkdir -p app/src/main/res/values
         
-        # إنشاء ملف النصوص
-        echo '<resources><string name="app_name">تطبيق محمد عبد العظيم الطويل</string></resources>' > $APP_DIR/app/src/main/res/values/strings.xml
+        # ملف الإعدادات الأساسي
+        echo "rootProject.name='MohamedAbdelazimApp'" > settings.gradle
+        echo "include ':app'" >> settings.gradle
         
-        # إنشاء الواجهة
-        cat <<EOF > $APP_DIR/app/src/main/res/layout/activity_main.xml
+        # ملف بناء التطبيق
+        cat <<EOF > build.gradle
+        buildscript {
+            repositories { google(); mavenCentral() }
+            dependencies { classpath 'com.android.tools.build:gradle:8.1.1' }
+        }
+        allprojects {
+            repositories { google(); mavenCentral() }
+        }
+        EOF
+
+        # ملفات الواجهة والاسم
+        echo '<resources><string name="app_name">تطبيق محمد عبد العظيم الطويل</string></resources>' > app/src/main/res/values/strings.xml
+        
+        cat <<EOF > app/src/main/res/layout/activity_main.xml
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:background="@drawable/father_background">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="صدقة جارية: محمد عبد العظيم الطويل" android:layout_centerInParent="true" 
-                android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold"/>
+                android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold"/>
         </RelativeLayout>
         EOF
-        
-        # إنشاء كود الجافا
-        cat <<EOF > $APP_DIR/app/src/main/java/com/abdelazim/islamicapp/MainActivity.java
-        package com.abdelazim.islamicapp;
-        import android.os.Bundle;
-        import androidx.appcompat.app.AppCompatActivity;
-        public class MainActivity extends AppCompatActivity {
-            @Override protected void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                setContentView(R.layout.activity_main);
-            }
-        }
-        EOF
 
-    - name: Build APK
+    - name: Build with Gradle
       run: |
-        cd MohamedAbdelazimApp
-        # سطر سحري لإنشاء ملفات بناء الأندرويد الأساسية
-        gradle init --type java-application
-        chmod +x gradlew
-        ./gradlew assembleDebug || echo "Error but checking output"
+        # استخدام نسخة جاهزة من جيت هب لبناء الأندرويد
+        sudo apt-get install -y gradle
+        gradle assembleDebug
         
     - name: Upload APK
       uses: actions/upload-artifact@v4
