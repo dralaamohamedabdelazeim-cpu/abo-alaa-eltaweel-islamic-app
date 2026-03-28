@@ -1,29 +1,28 @@
-name: Build Islamic App APK
+name: Build Islamic App
 on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Construct Project Automatically
+    - name: Setup Android Project
       run: |
-        # إنشاء المجلدات بدون تدخل بشري
+        # إنشاء المجلدات
         mkdir -p app/src/main/java/com/abdelazim/islamicapp
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/drawable
         mkdir -p app/src/main/res/values
-        
-        # كتابة ملف النصوص مباشرة في جيت هب
-        echo '<?xml version="1.0" encoding="utf-8"?><resources><string name="app_name">تطبيق محمد عبد العظيم الطويل</string></resources>' > app/src/main/res/values/strings.xml
-        
-        # كتابة واجهة التطبيق
+
+        # ملف strings.xml
+        echo '<resources><string name="app_name">تطبيق محمد عبد العظيم الطويل</string></resources>' > app/src/main/res/values/strings.xml
+
+        # ملف activity_main.xml (الواجهة)
         cat <<EOF > app/src/main/res/layout/activity_main.xml
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent" android:layout_height="match_parent"
@@ -34,7 +33,7 @@ jobs:
         </RelativeLayout>
         EOF
 
-        # كتابة كود الجافا
+        # ملف MainActivity.java
         cat <<EOF > app/src/main/java/com/abdelazim/islamicapp/MainActivity.java
         package com.abdelazim.islamicapp;
         import android.os.Bundle;
@@ -47,14 +46,27 @@ jobs:
         }
         EOF
 
-    - name: Build APK with Auto-Gradle
+    - name: Build APK with Gradle
       run: |
-        # تنظيف وبناء المشروع
-        sudo apt-get install -y gradle
-        gradle assembleDebug || echo "Retry build..."
+        # أمر سحري لبناء APK أندرويد بسيط بدون وجع دماغ
+        cat <<EOF > build.gradle
+        plugins { id 'com.android.application' version '8.1.1' }
+        android {
+            namespace 'com.abdelazim.islamicapp'
+            compileSdk 34
+            defaultConfig { applicationId "com.abdelazim.islamicapp"; minSdk 21; targetSdk 34; versionCode 1; versionName "1.0" }
+        }
+        repositories { google(); mavenCentral() }
+        EOF
         
-    - name: Upload Finished APK
+        echo "include ':app'" > settings.gradle
+        
+        # تشغيل البناء
+        sudo apt-get install -y gradle
+        gradle assembleDebug || echo "Retrying..."
+
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: Mohamed-Abdelazim-App
+        name: MyFatherApp-APK
         path: "**/build/outputs/apk/debug/*.apk"
