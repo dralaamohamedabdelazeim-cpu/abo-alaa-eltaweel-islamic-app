@@ -1,4 +1,4 @@
-﻿name: Build Islamic App APK
+name: Build Islamic App APK
 on: [push]
 jobs:
   build:
@@ -10,12 +10,19 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+        
+    - name: Fix Windows Line Endings
+      run: sed -i 's/\r$//' script.sh  # دي الخطوة السحرية اللي هتمسح الحروف المخفية
+      
     - name: Run Script
       run: bash script.sh
+      
     - name: Build APK
       run: |
         cd MohamedAbdelazimApp
+        chmod +x gradlew
         ./gradlew assembleDebug
+        
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
